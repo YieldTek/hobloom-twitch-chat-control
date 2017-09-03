@@ -1,0 +1,7 @@
+{
+  "username":"XXXXXX",
+  "password":"oauth:XXXXXXXX",
+  "hobloom_ip": "XXX.XXX.XXX.XXX",
+  "hobloom_port": "XXXX",
+  "channel": "XXXX"
+}
