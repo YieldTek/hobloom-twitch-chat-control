@@ -34,6 +34,7 @@ client.on("chat", function (channel, userstate, message, self) {
         if ((message in votes) && !(users_voted.includes(userstate.username))) {
             users_voted.push(userstate.username);
             votes[message]++;
+            client.say(config.get("channel"), userstate.username + ', I have received your vote of ' + message + ' any other votes sent this round will be ignored');
         }
     }
 });
@@ -62,7 +63,7 @@ function getCommand() {
 
         votes = resetVotes();
         getCommand();
-    }, 5 * 60000);
+    }, 60000);
 }
 
 function handleWinner(command) {
