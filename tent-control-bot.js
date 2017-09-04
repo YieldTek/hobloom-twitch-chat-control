@@ -53,12 +53,16 @@ function getCommand() {
             var winner = winners[ Math.floor(Math.random() * winners.length) ];
             winners = [ winner ];
         }
+        if (winners.length == 0) {
+            getCommand();
+            return;
+        }
         var message = handleWinner(winners[0]);
         client.say(config.get("channel"), message);
 
         votes = resetVotes();
         getCommand();
-    }, 30 * 1000);
+    }, 5 * 60000);
 }
 
 function handleWinner(command) {
@@ -113,8 +117,10 @@ function findWinningCommand() {
 }
 
 function raiseMaxHumidity() {
-    max_humidity++;
-    updateSettings();
+    if (max_humidity < 90) {
+        max_humidity++;
+        updateSettings();
+    }
 }
 
 function lowerMaximumHumidity() {
@@ -128,8 +134,10 @@ function raiseMinHumidity() {
 }
 
 function lowerMinHumidity() {
-    min_humidity--;
-    updateSettings();
+    if (min_humidity > 30) {
+        min_humidity--;
+        updateSettings();
+    }
 }
 
 function getSettings() {
@@ -176,6 +184,7 @@ function resetVotes() {
         '!raisemaxh': 0,
         '!raiseminh': 0,
         '!lowerminh': 0,
+        '!lowermaxh': 0,
         '!turnofflights': 0,
         '!turnonlights': 0,
         '!turnofffan': 0,
