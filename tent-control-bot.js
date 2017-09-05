@@ -70,16 +70,16 @@ function handleWinner(command) {
     switch (command) {
         case '!raisemaxh':
             raiseMaxHumidity();
-            return 'The winning command is raise max humidity! The max humidity setting will go up by one degree.';
+            return 'The winning command is raise max humidity! The max humidity setting will go up by one percent.';
         case '!lowermaxh':
             lowerMaximumHumidity();
-            return 'The winning command is lower max humidity! The max humidity setting will go down by one degree.';
+            return 'The winning command is lower max humidity! The max humidity setting will go down by one percent.';
         case '!raiseminh':
             raiseMinHumidity();
-            return 'The winning command is raise minimum humidity! The minimum humidity setting will go up by one degree.';
+            return 'The winning command is raise minimum humidity! The minimum humidity setting will go up by one percent.';
         case '!lowerminh':
             lowerMinHumidity();
-            return 'The winning command is lower minimum humidity! The minimum humidity setting will go down by one degree.';
+            return 'The winning command is lower minimum humidity! The minimum humidity setting will go down by one percent.';
         case '!turnofflights':
             changeApplianceStatus('light', false);
             return 'The winning command is turn off lights! The lights will now be turning off and the icon on the dashboard will turn red.';
