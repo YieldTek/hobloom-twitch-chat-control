@@ -64,7 +64,7 @@ client.on("chat", function (channel, userstate, message, self) {
     if (self) return;
 
     var command = commandHelpUtils.extractCommandFromMessage(message);
-    if (commandHelpUtils.verifyCommand(command)) {
+    if (commandHelpUtils.verifyCommand(command.toLowerCase())) {
         if (stateUtils.isFightingMonsterState() && commandHelpUtils.isAttackCommand(command)) {
             playerUtils.getPlayer(redis_client, userstate.username, function (player) {
                 var damage = player.getDamage();
