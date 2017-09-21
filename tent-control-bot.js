@@ -31,13 +31,14 @@ var min_humidity = null;
 
 var appliance_locks =  {
     'intake': null,
-    'lights': null
+    'lights': null,
+    'exhaust': null
 };
 
 var num_voters_last_round = 1;
 
 // TODO: Move to settings object
-var DEV_MODE = false;
+var DEV_MODE = config.get('dev_mode');
 var GOLD_FOR_VOTE = 5;
 var LOCK_TIMES = 15 * 60000;
 var ROUND_TIME_MINUTES = 1;
@@ -64,7 +65,7 @@ client.on("chat", function (channel, userstate, message, self) {
     if (self) return;
 
     var command = commandHelpUtils.extractCommandFromMessage(message);
-    if (commandHelpUtils.verifyCommand(command)) {
+    if (commandHelpUtils.verifyCommand(command.toLowerCase())) {
         if (stateUtils.isFightingMonsterState() && commandHelpUtils.isAttackCommand(command)) {
             playerUtils.getPlayer(redis_client, userstate.username, function (player) {
                 var damage = player.getDamage();
@@ -77,14 +78,18 @@ client.on("chat", function (channel, userstate, message, self) {
 
                 world.getMonster().setHP(world.getMonster().getHP() - damage);
                 if (world.getMonster().getHP() <= 0) {
-                    playerUtils.updatePlayerXP(redis_client, player, world.getMonster().getXP());
+                    var xp = world.getMonster().getXP();
+                    if (userstate.mod === true) {
+                        xp *= 2;
+                    }
+                    playerUtils.updatePlayerXP(redis_client, player, xp);
 
                     client.say(config.get('channel'), '@' + userstate.username + " has slain the " + world.getMonster().getName() + "!");
                     world.setMonster(null);
                     stateUtils.setStateOpenVoting();
                     return;
                 }
-                client.say(config.get('channel'), '@' + userstate.username + " has hit the " + world.getMonster().getName() + "! The Monster has " + world.getMonster().getHP() + " HP remaining!");
+                client.say(config.get('channel'), '@' + userstate.username + " has hit the " + world.getMonster().getName() + ' FOR ' + damage + ' DAMAGE! The Monster has ' + world.getMonster().getHP() + ' HP REMAINING!');
             });
             return;
         }
@@ -205,6 +210,10 @@ function handleWinner(command) {
             changeApplianceStatus('intake', false);
             return 'The winning command is turn off fan! The circulating fan will now be turning off and the icon on the dashboard will turn red.';
         case 'turnonexhaust':
+            var lock_message = checkApplianceLock('exhaust');
+            if (lock_message != null) {
+                return lock_message;
+            }
             changeApplianceStatus('exhaust', true);
             return 'The winning command is turn on exhaust fan! The exhaust fan will now be turning on and the icon on the dashboard will turn blue.';
         case 'turnoffexhaust':

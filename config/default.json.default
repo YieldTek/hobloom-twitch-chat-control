@@ -3,9 +3,6 @@
   "password": "oauth:XXXXXX",
   "hobloom_ip": "XXX.XXX.XXX.XXX",
   "hobloom_port": "XXXXXX",
-  "channel": "XXXXXX"
-  "mysql_host": "127.0.0.1",
-  "mysql_user": "XXXXXX",
-  "mysql_password": "XXXXXX",
-  "mysql_db": "twitchbot"
+  "channel": "XXXXXX",
+  "dev_mode": true
 }
