@@ -7,8 +7,8 @@ function Goblin(client, channel, locks, callback) {
     this.client = client;
     this.channel = channel;
     this.name = "Goblin";
-    this.hp = 1;
-    this.xp = 3;
+    this.hp = 5;
+    this.xp = 10;
     this.callbackFunction = callback;
 }
 
