@@ -166,7 +166,7 @@ client.connect();
 getSettings();
 
 function announcePoll() {
-    client.say(config.get("channel"), 'VoteYea VoteYea VoteYea VoteYea VoteYea Kappa Kappa FOR A LIMITED TIME YOU CAN VOTE ON WHAT WE PLANT NEXT http://www.strawpoll.me/13898314 Kappa Kappa VoteNay VoteNay VoteNay VoteNay VoteNay');
+    client.say(config.get("channel"), 'Kappa Kappa CHECK US OUT ON PATREON TO SUPPORT MORE OPEN SOURCE AUTOMATION SOFTWARE! https://www.patreon.com/hightek Kappa Kappa');
 }
 
 function handleWinner(command) {
