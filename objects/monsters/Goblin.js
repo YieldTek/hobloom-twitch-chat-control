@@ -9,6 +9,8 @@ function Goblin(client, channel, locks, callback) {
     this.name = "Goblin";
     this.hp = 5;
     this.xp = 10;
+    this.min_damage = 1;
+    this.max_damage = 2;
     this.callbackFunction = callback;
 }
 
@@ -23,9 +25,9 @@ Goblin.prototype.punish = function () {
     return this.locks;
 };
 
-Goblin.prototype.finish = function () {
-    this.callbackFunction('intake', false);
-}
+Goblin.prototype.finish = function (settings) {
+    this.callbackFunction(settings, 'intake', false);
+};
 
 util.inherits(Goblin, Monster);
 
