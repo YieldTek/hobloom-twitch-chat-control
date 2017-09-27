@@ -1,17 +1,22 @@
 var tmi = require("tmi.js");
 var redis = require('redis');
 var config = require('config');
-var request = require('request');
 var DateDiff = require('date-diff');
 var World = require('./objects/World');
 var Chest = require('./objects/Chest');
 var RNGUtils = require('./lib/RNGUtils');
+var ShopUtils = require('./lib/ShopUtils');
 var VoteUtils = require('./lib/VoteUtils');
+var ItemUtils = require('./lib/ItemUtils');
 var StateUtils = require('./lib/StateUtils');
 var PlayerUtils = require('./lib/PlayerUtils');
+var Potion = require('./objects/items/Potion');
+var ChestFactory = require('./lib/ChestFactory');
+var MonsterFactory = require('./lib/MonsterFactory');
 var LightInfoUtils = require('./lib/LightInfoUtils');
 var CommandHelpUtils = require('./lib/CommandHelpUtils');
-var MonsterFactory = require('./objects/MonsterFactory');
+var Settings = require('./lib/Settings');
+var ApplianceUtils = require('./lib/ApplianceUtils');
 
 var redis_client = redis.createClient();
 
@@ -22,28 +27,20 @@ var commandHelpUtils = new CommandHelpUtils();
 var lightInfoUtils = new LightInfoUtils();
 var voteUtils = new VoteUtils();
 var stateUtils = new StateUtils();
+var itemUtils = new ItemUtils();
 var rngUtils = new RNGUtils();
+var shopUtils = new ShopUtils();
+var chestFactory = new ChestFactory();
+var settings = new Settings(null, null);
+var applianceUtils = new ApplianceUtils(settings);
 
 lightInfoUtils.updateLightStatus(true);
-
-var max_humidity = null;
-var min_humidity = null;
-
-var appliance_locks =  {
-    'intake': null,
-    'lights': null,
-    'exhaust': null
-};
 
 var num_voters_last_round = 1;
 
 // TODO: Move to settings object
-var DEV_MODE = config.get('dev_mode');
 var GOLD_FOR_VOTE = 5;
-var LOCK_TIMES = 15 * 60000;
 var ROUND_TIME_MINUTES = 1;
-
-var base_unit_ip = "http://" + config.get("hobloom_ip") + ":" + config.get("hobloom_port");
 
 var options = {
     options: {
@@ -64,8 +61,8 @@ var client = new tmi.client(options);
 client.on("chat", function (channel, userstate, message, self) {
     if (self) return;
 
-    var command = commandHelpUtils.extractCommandFromMessage(message);
-    if (commandHelpUtils.verifyCommand(command.toLowerCase())) {
+    var command = commandHelpUtils.extractCommandFromMessage(message.toLowerCase());
+    if (commandHelpUtils.verifyCommand(command)) {
         if (stateUtils.isFightingMonsterState() && commandHelpUtils.isAttackCommand(command)) {
             playerUtils.getPlayer(redis_client, userstate.username, function (player) {
                 var damage = player.getDamage();
@@ -90,18 +87,60 @@ client.on("chat", function (channel, userstate, message, self) {
                     return;
                 }
                 client.say(config.get('channel'), '@' + userstate.username + " has hit the " + world.getMonster().getName() + ' FOR ' + damage + ' DAMAGE! The Monster has ' + world.getMonster().getHP() + ' HP REMAINING!');
+
+                var damage = rngUtils.getRandom(world.getMonster().getMinDamage(), world.getMonster().getMaxDamage());
+                player.setHP(player.getHP() - damage);
+                var hp = player.getHP();
+                if (hp < 0) {
+                    hp = 0;
+                }
+                client.say(config.get('channel'), '@' + userstate.username + " the " + world.getMonster().getName() + " swings back and hits you for " + damage + ' damage! YOU HAVE ' + hp + ' HP REMAINING!');
+                if (player.getHP() <= 0) {
+                    player.setXP(0);
+                    player.setHP(player.getMaxHP());
+                    var goldToRemove = Math.ceil(player.getGold() * 0.20);
+                    player.setGold(player.getGold() - goldToRemove);
+                    client.say(config.get('channel'), '@' + userstate.username + " the " + world.getMonster().getName() + " HAS KILLED YOU! You will now lose all your XP and " + goldToRemove + " gold!!");
+                }
+                player.update(redis_client);
+
             });
             return;
         }
 
         if (commandHelpUtils.isHelpCommand(command)) {
-            commandHelpUtils.printHelpInfo(config.get('channel'), client);
-            return;
+            var subCommand = commandHelpUtils.extractSubCommandFromMessage(message);
+            if (commandHelpUtils.isShopCommand(subCommand)) {
+                return shopUtils.printShopHelp(config.get('channel'), client);
+            }
+            return commandHelpUtils.printHelpInfo(config.get('channel'), client);
         }
 
         if (commandHelpUtils.isPlayerInfoCommand(command)) {
             playerUtils.getPlayer(redis_client, userstate.username, function (player) {
                 player.printInfo(config.get('channel'), client);
+            });
+            return;
+        }
+
+        if (commandHelpUtils.isShowItemsCommand(command)) {
+            playerUtils.getPlayer(redis_client, userstate.username, function (player) {
+                var message = player.getItemsMessage(itemUtils);
+                if (!message) {
+                    return client.say(config.get('channel'), '@' + userstate.username + ", your don't have any items!");
+                }
+                client.say(config.get('channel'), '@' + userstate.username + ", your current items are as follows " + message);
+            });
+            return;
+        }
+
+        if (commandHelpUtils.isUseItemCommand(command)) {
+            playerUtils.getPlayer(redis_client, userstate.username, function (player) {
+                if (itemUtils.usePlayerItemByType(redis_client, player, message.split(' ')[1])) {
+                    client.say(config.get('channel'), '@' + userstate.username + " used a " + message.split(' ')[1]);
+                    return;
+                }
+                client.say(config.get('channel'), '@' + userstate.username + ", you entered an invalid item.  It is either spelled wrong or you don't have that item in your inventory.");
             });
             return;
         }
@@ -115,7 +154,43 @@ client.on("chat", function (channel, userstate, message, self) {
             return;
         }
 
+        if (commandHelpUtils.isShopItemListCommand(message.toLowerCase())) {
+            return shopUtils.printItemList(config.get('channel'), client);
+        }
+
+        if (commandHelpUtils.isShopBuyItemCommand(message.toLowerCase())) {
+            playerUtils.getPlayer(redis_client, userstate.username, function (player) {
+                var gold = player.getGold();
+                var item = null;
+                var say_message = '@' + userstate.username + ', you have entered an invalid item name';
+                switch (message.split(' ')[2]) {
+                    case ('Potion'):
+                    case ('potion'):
+                        item = new Potion();
+                        break;
+                }
+                if (item == null) {
+                    return client.say(config.get('channel'), say_message);
+                }
+                if (gold < item.getCost()) {
+                    return client.say(config.get('channel'), '@' + userstate.username + ', you can afford this item.  Try again when you earn ' + (item.getCost() - gold) + ' more gold.');
+                }
+                var num_items = itemUtils.getItemCounts(player.getItems())[item.getName()];
+                var max_items = item.getMaxInInventor();
+                if (num_items >= max_items) {
+                    return client.say(config.get('channel'), '@' + userstate.username + ', you already have the max ' + item.getName() + ' in your inventory!');
+                }
+                player.addItem(redis_client, item);
+                player.setGold(gold - item.getCost());
+                client.say(config.get('channel'), '@' + userstate.username + ', you have purchased a ' + item.getName());
+            });
+        }
+
         if (stateUtils.isVotingOpenState()) {
+            // TODO: Clean this up
+            if ((commandHelpUtils.isShopCommand(command) && !commandHelpUtils.isShopItemListCommand(message.toLowerCase())) || commandHelpUtils.isShopBuyItemCommand(message.toLowerCase()) && commandHelpUtils.isShowItemsCommand(message.toLowerCase())) {
+                return;
+            }
             if (voteUtils.hasUserVoted(userstate.username)) {
                 client.say(config.get('channel'), '@' + userstate.username + ', you have already voted this round. Each user only gets one vote per round!');
                 return;
@@ -125,33 +200,19 @@ client.on("chat", function (channel, userstate, message, self) {
             playerUtils.getPlayer(redis_client, userstate.username, function (player) {
                 client.say(config.get("channel"), '@' + userstate.username + ', I have received your vote of ' + message + ' and awarded you ' + GOLD_FOR_VOTE + ' gold for it. Any other votes sent this round will be ignored!');
 
-                var chest_gold = 0;
-                if (rngUtils.getRandom(1, 15) == 10) {
-                    var player_chest = new Chest(10, 200);
-                    chest_gold += player_chest.getGold();
-                    client.say(config.get("channel"), '@' + userstate.username + ', YOU FOUND A CHEST!! IT CONTAINS ' + player_chest.getGold() + ' GOLD!!');
+                var gold_for_player = GOLD_FOR_VOTE;
+                var chest_found = chestFactory.spawnForVote();
+                if (chest_found != null) {
+                    gold_for_player += chest_found.getGold();
+                    client.say(config.get("channel"), '@' + userstate.username + ', YOU FOUND A ' + chest_found.getType() + ' CHEST!! IT CONTAINS ' + chest_found.getGold() + ' GOLD!!');
                 }
+                playerUtils.updatePlayerGold(redis_client, player, gold_for_player);
 
-                if (rngUtils.getRandom(1, 50) == 10) {
-                    var player_chest = new Chest(200, 1000);
-                    chest_gold += player_chest.getGold();
-                    client.say(config.get("channel"), '@' + userstate.username + ', YOU FOUND A RARE CHEST!! IT CONTAINS ' + player_chest.getGold() + ' GOLD!!');
-                }
-
-                if (rngUtils.getRandom(1, 200) == 50) {
-                    var player_chest = new Chest(2000, 5000);
-                    chest_gold += player_chest.getGold();
-                    client.say(config.get("channel"), '@' + userstate.username + ', YOU FOUND A MYTHICAL CHEST!! IT CONTAINS ' + player_chest.getGold() + ' GOLD!!');
-                }
-
-                playerUtils.updatePlayerGold(redis_client, player, GOLD_FOR_VOTE + chest_gold);
-
-
-                var monsterFactoryReturn = monsterFactory.rollForMonster(client, config.get("channel"), appliance_locks, num_voters_last_round, changeApplianceStatus);
+                var monsterFactoryReturn = monsterFactory.rollForMonster(client, config.get("channel"), applianceUtils.appliance_locks, num_voters_last_round, applianceUtils.changeAppliancePower);
                 if (monsterFactoryReturn != null) {
                     stateUtils.setStateUnderAttack();
                     world.setMonster(monsterFactoryReturn);
-                    client.say(config.get("channel"), 'SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SPAWNING A RANDOM MONSTER NOW! MAY ALL YOUR BASE STILL BELONG TO YOU AFTER THIS BATTLE! SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc');
+                    client.say(config.get("channel"), 'SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc SMOrc');
                     world.getMonster().spawn();
                 }
             });
@@ -162,150 +223,17 @@ client.on("chat", function (channel, userstate, message, self) {
 });
 
 client.connect();
-
-getSettings();
+settings.getSettings()
+.then(function (settings_update) {
+    settings = new Settings(settings_update.min_humidity, settings_update.max_humidity);
+    setInterval(mainLoop, 2000);
+})
+.catch(function (err) {
+    console.log(err);
+});
 
 function announcePoll() {
-    client.say(config.get("channel"), 'Kappa Kappa CHECK US OUT ON PATREON TO SUPPORT MORE OPEN SOURCE AUTOMATION SOFTWARE! https://www.patreon.com/hightek Kappa Kappa');
-}
-
-function handleWinner(command) {
-    switch (command) {
-        case 'raisemaxh':
-            raiseMaxHumidity();
-            return 'The winning command is raise max humidity! The max humidity setting will go up by one percent.';
-        case 'lowermaxh':
-            lowerMaximumHumidity();
-            return 'The winning command is lower max humidity! The max humidity setting will go down by one percent.';
-        case 'raiseminh':
-            raiseMinHumidity();
-            return 'The winning command is raise minimum humidity! The minimum humidity setting will go up by one percent.';
-        case 'lowerminh':
-            lowerMinHumidity();
-            return 'The winning command is lower minimum humidity! The minimum humidity setting will go down by one percent.';
-        case 'turnofflights':
-            if (lightInfoUtils.getLightsOn()) {
-                lightInfoUtils.updateLightStatus(false);
-            }
-            changeApplianceStatus('light', false);
-            return 'The winning command is turn off lights! The lights will now be turning off and the icon on the dashboard will turn red.';
-        case 'turnonlights':
-            if (!lightInfoUtils.getLightsOn()) {
-                lightInfoUtils.updateLightStatus(true);
-            }
-            var lock_message = checkApplianceLock('lights');
-            if (lock_message != null) {
-                return lock_message;
-            }
-            changeApplianceStatus('light', true);
-            return 'The winning command is turn on lights! The lights will now be turning on and the icon on the dashboard will turn blue.';
-        case 'turnonfan':
-            var lock_message = checkApplianceLock('intake');
-            if (lock_message != null) {
-                return lock_message;
-            }
-            changeApplianceStatus('intake', true);
-            return 'The winning command is turn on fan! The circulating fan will now be turning on and the icon on the dashboard will turn blue.';
-        case 'turnofffan':
-            changeApplianceStatus('intake', false);
-            return 'The winning command is turn off fan! The circulating fan will now be turning off and the icon on the dashboard will turn red.';
-        case 'turnonexhaust':
-            var lock_message = checkApplianceLock('exhaust');
-            if (lock_message != null) {
-                return lock_message;
-            }
-            changeApplianceStatus('exhaust', true);
-            return 'The winning command is turn on exhaust fan! The exhaust fan will now be turning on and the icon on the dashboard will turn blue.';
-        case 'turnoffexhaust':
-            changeApplianceStatus('exhaust', false);
-            return 'The winning command is turn off exhaust fan! The exhaust fan will now be turning off and the icon off the dashboard will turn red.';
-        default:
-            return '';
-    }
-}
-
-function checkApplianceLock(type) {
-    if(appliance_locks[type] != null && new Date() - appliance_locks[type] < LOCK_TIMES) {
-        return 'I can\'t complete your request as your party has failed to slay a monster and is still being punished!';
-    }
-    if(appliance_locks[type] != null && new Date() - appliance_locks[type] > LOCK_TIMES) {
-        appliance_locks[type] = null;
-    }
-    return null;
-}
-
-function raiseMaxHumidity() {
-    if (max_humidity < 90) {
-        max_humidity++;
-        updateSettings();
-    }
-}
-
-function lowerMaximumHumidity() {
-    max_humidity--;
-    updateSettings();
-}
-
-function raiseMinHumidity() {
-    min_humidity++;
-    updateSettings();
-}
-
-function lowerMinHumidity() {
-    if (min_humidity > 30) {
-        min_humidity--;
-        updateSettings();
-    }
-}
-
-function getSettings() {
-    if (DEV_MODE) {
-        max_humidity = 70;
-        min_humidity = 60;
-        return;
-    }
-    request(base_unit_ip + '/settings', function (error, response, body) {
-        var data = JSON.parse(body).data;
-        for (var i = 0; i < data.length; i++) {
-            if (data[i].key == 'MAX_HUMIDITY') {
-                max_humidity = parseInt(data[i].value);
-            }
-            if (data[i].key == 'MIN_HUMIDITY') {
-                min_humidity = parseInt(data[i].value);
-            }
-        }
-    });
-}
-
-function updateSettings() {
-    if (DEV_MODE) {
-        return;
-    }
-    var params = {
-        settings: [
-            { key: 'MIN_HUMIDITY', value: min_humidity },
-            { key: 'MAX_HUMIDITY', value: max_humidity }
-        ]
-    };
-
-    request({ url: base_unit_ip + '/settings', method: 'PUT', json: params }, function (error, response, body) {
-    });
-}
-
-function changeApplianceStatus(type, on) {
-    if (DEV_MODE) {
-        return;
-    }
-
-    var params = {
-        asset_type: type
-    };
-    params['turn_on'] = 'false';
-    if (on) {
-        params['turn_on'] = 'true';
-    }
-    request({ url: base_unit_ip + '/appliancepower', method: 'POST', json: params }, function (error, response, body) {
-    });
+    client.say(config.get("channel"), 'Kappa Kappa CHECK US OUT ON PATREON TO SUPPORT MORE OPEN SOURCE AUTOMATION SOFTWARE! http://patreon.com/hightek Kappa Kappa');
 }
 
 function mainLoop() {
@@ -313,7 +241,7 @@ function mainLoop() {
         var time_in_fight = new DateDiff(new Date(), world.getMonster().getFightStartTime());
         if (time_in_fight.seconds() >= 15) {
             world.getMonster().punish();
-            world.getMonster().finish();
+            world.getMonster().finish(settings);
             stateUtils.setStateOpenVoting();
         }
         return;
@@ -334,7 +262,7 @@ function mainLoop() {
             client.say(config.get('channel'), 'It looks like we have a tie!  Rolling for a winner!!');
             winners = [ winners[ Math.floor(Math.random() * winners.length) ] ];
         }
-        client.say(config.get('channel'), handleWinner(winners[0]));
+        client.say(config.get('channel'), voteUtils.handleWinner(winners[0], settings, applianceUtils, lightInfoUtils));
         stateUtils.setStateOpenVoting();
         voteUtils.clear();
         announcePoll();
@@ -342,6 +270,3 @@ function mainLoop() {
         return;
     }
 }
-
-
-setInterval(mainLoop, 2000);
