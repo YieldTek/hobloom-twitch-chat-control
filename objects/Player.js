@@ -109,7 +109,7 @@ Player.prototype.setDexterity = function (dexterity) {
 
 Player.prototype.printInfo = function (channel, client) {
     var xpToNextLevel = this.playerLevelUtils.getXpToLevel(this.getLevel()) - this.getXP();
-    client.say(channel, '@' + this.getUsername() + ', you are level ' + this.getLevel() + '.  You have ' + this.getHP() + '/' + this.getMaxHP() + ' HP. Your current strength is ' + this.getStrength() + ' and your dexterity is ' + this.getDexterity() + '. You have ' + this.getXP() + ' experience points and ' + this.getGold() + ' gold. To reach the level ' + (this.getLevel() + 1) + ' you will need ' + xpToNextLevel + ' more xp! To see your items use the \'showitems\' command.');
+    client.say(channel, '@' + this.getUsername() + ', LEVEL-' + this.getLevel() + ' ItsBoshyTime HP-' + this.getHP() + '/' + this.getMaxHP() + ' ItsBoshyTime STR-' + this.getStrength() + ' ItsBoshyTime DEX-' + this.getDexterity() + ' ItsBoshyTime XP-' + this.getXP() + ' ItsBoshyTime GOLD-' + this.getGold() + ' ItsBoshyTime NEXT LVL XP-' + xpToNextLevel + ' ItsBoshyTime To see your items use the \'showitems\' command ItsBoshyTime');
 };
 
 Player.prototype.getItemsMessage = function (itemUtils) {

@@ -17,6 +17,7 @@ var LightInfoUtils = require('./lib/LightInfoUtils');
 var CommandHelpUtils = require('./lib/CommandHelpUtils');
 var Settings = require('./lib/Settings');
 var ApplianceUtils = require('./lib/ApplianceUtils');
+var PlayerDamageTracker = require('./lib/PlayerDamageTracker');
 
 var redis_client = redis.createClient();
 
@@ -33,6 +34,7 @@ var shopUtils = new ShopUtils();
 var chestFactory = new ChestFactory();
 var settings = new Settings(null, null);
 var applianceUtils = new ApplianceUtils(settings);
+var playerDamageTracker = new PlayerDamageTracker();
 
 lightInfoUtils.updateLightStatus(true);
 
@@ -73,15 +75,13 @@ client.on("chat", function (channel, userstate, message, self) {
                     client.say(config.get('channel'), '@' + userstate.username + ', has landed a critical hit for ' + damage + ' damage!');
                 }
 
+                playerDamageTracker.addPlayer(player);
+
                 world.getMonster().setHP(world.getMonster().getHP() - damage);
                 if (world.getMonster().getHP() <= 0) {
-                    var xp = world.getMonster().getXP();
-                    if (userstate.mod === true) {
-                        xp *= 2;
-                    }
-                    playerUtils.updatePlayerXP(redis_client, player, xp);
-
-                    client.say(config.get('channel'), '@' + userstate.username + " has slain the " + world.getMonster().getName() + "!");
+                    playerDamageTracker.addXPForUsers(redis_client, world.getMonster().getXP(), playerUtils);
+                    playerDamageTracker.clearUsers();
+                    client.say(config.get('channel'), "The " + world.getMonster().getName() + " has been slain!");
                     world.setMonster(null);
                     stateUtils.setStateOpenVoting();
                     return;
@@ -182,6 +182,7 @@ client.on("chat", function (channel, userstate, message, self) {
                 }
                 player.addItem(redis_client, item);
                 player.setGold(gold - item.getCost());
+                player.update(redis_client);
                 client.say(config.get('channel'), '@' + userstate.username + ', you have purchased a ' + item.getName());
             });
         }
