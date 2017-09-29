@@ -18,6 +18,7 @@ var CommandHelpUtils = require('./lib/CommandHelpUtils');
 var Settings = require('./lib/Settings');
 var ApplianceUtils = require('./lib/ApplianceUtils');
 var PlayerDamageTracker = require('./lib/PlayerDamageTracker');
+var NormalGearFactory = require('./lib/NormalGearFactory');
 
 var redis_client = redis.createClient();
 
@@ -35,6 +36,7 @@ var chestFactory = new ChestFactory();
 var settings = new Settings(null, null);
 var applianceUtils = new ApplianceUtils(settings);
 var playerDamageTracker = new PlayerDamageTracker();
+var normalGearFactory = new NormalGearFactory();
 
 lightInfoUtils.updateLightStatus(true);
 
@@ -82,6 +84,17 @@ client.on("chat", function (channel, userstate, message, self) {
                     playerDamageTracker.addXPForUsers(redis_client, world.getMonster().getXP(), playerUtils);
                     playerDamageTracker.clearUsers();
                     client.say(config.get('channel'), "The " + world.getMonster().getName() + " has been slain!");
+
+
+                    var rng = rngUtils.getRandom(1, 3);
+                    if (rng == 2) {
+                        var item = normalGearFactory.getItemForPlayer(player.getLevel());
+                        if (item != null) {
+                            client.say(config.get('channel'), "@" + userstate.username + ' FOUND WEAPON: ' + item.getName() + " (STR-" + item.getStrength() + ") (DEX-" + item.getDexterity() + ") (HP BONUS-" + item.getHPBonus() + ")");
+                            player.addGear(item);
+                            player.update(redis_client);
+                        }
+                    }
                     world.setMonster(null);
                     stateUtils.setStateOpenVoting();
                     return;
@@ -108,6 +121,42 @@ client.on("chat", function (channel, userstate, message, self) {
             return;
         }
 
+        if (commandHelpUtils.isShowEquippedCommand(command)) {
+            playerUtils.getPlayer(redis_client, userstate.username, function (player) {
+                client.say(config.get('channel'), player.getEquippedGearMessage());
+            });
+            return;
+        }
+
+        if (commandHelpUtils.isEquipCommand(command)) {
+            var itemNumber = commandHelpUtils.extractSubCommandFromMessage(message);
+            playerUtils.getPlayer(redis_client, userstate.username, function (player) {
+                if (!isPositiveInteger(itemNumber) || itemNumber > player.gear.length) {
+                    return client.say(config.get('channel'), '@' + userstate.username + " you have entered an invalid item number!");
+                }
+                player.equipGear(itemNumber, client, config.get('channel'));
+                player.update(redis_client);
+            });
+            return;
+        }
+
+        if (commandHelpUtils.isDropCommand(command)) {
+            var itemNumber = commandHelpUtils.extractSubCommandFromMessage(message);
+            playerUtils.getPlayer(redis_client, userstate.username, function (player) {
+                if (!isPositiveInteger(itemNumber) || itemNumber > player.gear.length) {
+                    return client.say(config.get('channel'), '@' + userstate.username + " you have entered an invalid item number!");
+                }
+                player.dropGear(itemNumber, client, config.get('channel'));
+                player.update(redis_client);
+            });
+            return;
+        }
+
+        function isPositiveInteger(str) {
+            var n = Math.floor(Number(str));
+            return String(n) === str && n > 0;
+        }
+
         if (commandHelpUtils.isHelpCommand(command)) {
             var subCommand = commandHelpUtils.extractSubCommandFromMessage(message);
             if (commandHelpUtils.isShopCommand(subCommand)) {
@@ -130,6 +179,17 @@ client.on("chat", function (channel, userstate, message, self) {
                     return client.say(config.get('channel'), '@' + userstate.username + ", your don't have any items!");
                 }
                 client.say(config.get('channel'), '@' + userstate.username + ", your current items are as follows " + message);
+            });
+            return;
+        }
+
+        if (commandHelpUtils.isShowGearCommand(command)) {
+            playerUtils.getPlayer(redis_client, userstate.username, function (player) {
+                var message = player.getGearMessage(itemUtils);
+                if (!message) {
+                    return client.say(config.get('channel'), '@' + userstate.username + ", your don't have any gear!");
+                }
+                client.say(config.get('channel'), '@' + userstate.username + ", your current gear is as follows " + message);
             });
             return;
         }
