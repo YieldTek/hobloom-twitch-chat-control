@@ -196,11 +196,17 @@ client.on("chat", function (channel, userstate, message, self) {
                 client.say(config.get('channel'), '@' + userstate.username + ', you have already voted this round. Each user only gets one vote per round!');
                 return;
             }
-
-            voteUtils.addUserVote(userstate.username, command);
-            playerUtils.getPlayer(redis_client, userstate.username, function (player) {
+            // TODO: Move this to settings and put in config
+            GOLD_FOR_VOTE = 5;
+            if (!commandHelpUtils.isHuntCommand(command)) {
+                voteUtils.addUserVote(userstate.username, command);
                 client.say(config.get("channel"), '@' + userstate.username + ', I have received your vote of ' + message + ' and awarded you ' + GOLD_FOR_VOTE + ' gold for it. Any other votes sent this round will be ignored!');
-
+            } else {
+                voteUtils.addUserWithoutVote(userstate.username);
+                client.say(config.get("channel"), '@' + userstate.username + ', is going hunting. Best of luck in pulling back a monster! You have received 10 gold for going out hunting!');
+                GOLD_FOR_VOTE = 10;
+            }
+            playerUtils.getPlayer(redis_client, userstate.username, function (player) {
                 var gold_for_player = GOLD_FOR_VOTE;
                 var chest_found = chestFactory.spawnForVote();
                 if (chest_found != null) {
