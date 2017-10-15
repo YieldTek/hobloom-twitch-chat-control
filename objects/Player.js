@@ -11,8 +11,19 @@ function Player(data) {
     this.strength = data.strength;
     this.dexterity = data.dexterity;
     this.items = data.items;
+    this.gear = data.gear;
     this.rngUtils = new RNGUtils();
     this.playerLevelUtils = new PlayerLevelUtils();
+    if (typeof data.equipped == 'undefined') {
+        this.equipped = {
+            'HEAD': null,
+            'HANDS': null,
+            'WEAPON': null,
+            'FEET': null
+        };
+    } else {
+        this.equipped = data.equipped;
+    }
 }
 
 Player.prototype.checkForCriticalHit = function () {
@@ -129,12 +140,64 @@ Player.prototype.getItemsMessage = function (itemUtils) {
     return message;
 };
 
+Player.prototype.getGearMessage = function () {
+    var message = 'ItsBoshyTime ';
+    if (typeof this.gear === 'undefined') {
+        this.gear = [];
+    }
+    if (!this.gear.length) {
+        return false;
+    }
+    for (var i = 0; i < this.gear.length; i++) {
+        message += '#' + (i + 1) + " " + this.gear[i].name + "-" + this.gear[i].type + " (STR-" + this.gear[i].str + ") (DEX-" + this.gear[i].dex + ") (HP BONUS-" + this.gear[i].hp_bonus + ")" + ' ItsBoshyTime ';
+    }
+    return message;
+};
+
 Player.prototype.getItems = function () {
     return this.items;
 };
 
 Player.prototype.setItems = function (items) {
     this.items = items;
+};
+
+Player.prototype.addGear = function (gear) {
+    if (typeof this.gear == 'undefined' || this.gear == null) {
+        this.gear = [];
+    }
+    this.gear.push(gear);
+};
+
+Player.prototype.getEquippedGearMessage = function (client, channel) {
+    var message = 'ItsBoshyTime ';
+    message += 'WEAPON: ';
+    if (typeof this.equipped['WEAPON'] != 'undefined' && this.equipped['WEAPON'] != null) {
+        message += "[" + this.equipped['WEAPON'].name + " (STR-" + this.equipped['WEAPON'].str + ") (DEX-" + this.equipped['WEAPON'].dex + ") (HP BONUS-" + this.equipped['WEAPON'].hp_bonus + ")] ItsBoshyTime";
+    } else {
+        message += 'None ItsBoshyTime'
+    }
+    return message;
+};
+
+Player.prototype.equipGear = function (number, client, channel) {
+    var item = this.gear[number - 1];
+    if (this.equipped[item.type] == null) {
+        client.say(channel, '@' + this.username + ', You have equipped ' + item.name);
+        this.gear.splice(number - 1, 1);
+        return;
+    }
+    var oldItem = this.equipped[item.type];
+    this.equipped[item.type] = item;
+    this.gear[number - 1] = oldItem;
+    client.say(channel, '@' + this.username + ', You have replaced ' + oldItem.name + ' with ' + item.name);
+};
+
+Player.prototype.dropGear = function (number, client, channel) {
+    var item = this.gear[number - 1];
+    client.say(channel, '@' + this.username + ', You have dropped ' + item.name);
+    this.gear.splice(number - 1, 1);
+    return;
 };
 
 Player.prototype.toString = function () {
