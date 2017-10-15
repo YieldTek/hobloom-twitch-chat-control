@@ -1,4 +1,4 @@
-const RNGUtils = require("../lib/RNGUtils.js");
+const RNGUtils = require("../lib/RNGUtils");
 
 test("Random number is less than max, and greater than or equal to min", () => {
   var min = -1000;
