@@ -1,9 +1,8 @@
 var RNGUtils = require('../lib/RNGUtils');
 
 function Chest(type, min_gold, max_gold) {
-    this.rngUtils = new RNGUtils();
     this.type = type;
-    this.gold = this.rngUtils.getRandom(min_gold, max_gold)
+    this.gold = RNGUtils.getRandom(min_gold, max_gold)
 }
 
 Chest.prototype.getGold = function () {
