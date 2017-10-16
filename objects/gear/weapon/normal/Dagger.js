@@ -15,12 +15,11 @@ function Dagger() {
     this.rarity = 'NORMAL';
     this.type = 'WEAPON';
     this.name = 'Dagger';
-    this.rngUtils = new RNGUtils();
 
-    this.str = this.rngUtils.getRandom(this.min_str, this.max_str);
-    this.dex = this.rngUtils.getRandom(this.min_dex, this.max_dex);
-    if (this.rngUtils.getRandom(1, 4) == 3) {
-        this.hp_bonus = this.rngUtils.getRandom(this.min_bonus_hp, this.max_bonus_hp);
+    this.str = RNGUtils.getRandom(this.min_str, this.max_str);
+    this.dex = RNGUtils.getRandom(this.min_dex, this.max_dex);
+    if (RNGUtils.getRandom(1, 4) == 3) {
+        this.hp_bonus = RNGUtils.getRandom(this.min_bonus_hp, this.max_bonus_hp);
     }
 }
 
