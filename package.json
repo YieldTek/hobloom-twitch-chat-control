@@ -14,7 +14,14 @@
     "type": "git",
     "url": "git+https://github.com/HighTekGrow/hobloom-twitch-chat-control.git"
   },
-  "keywords": ["HOBloom", "growroom", "Twitch", "chat", "chat", "bot"],
+  "keywords": [
+    "HOBloom",
+    "growroom",
+    "Twitch",
+    "chat",
+    "chat",
+    "bot"
+  ],
   "author": "atarimaster001",
   "license": "GPL-3.0",
   "bugs": {

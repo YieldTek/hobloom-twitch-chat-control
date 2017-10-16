@@ -1,5 +1,4 @@
 var RNGUtils = require('../lib/RNGUtils');
-var PlayerLevelUtils = require('../lib/PlayerLevelUtils');
 
 function Player(data) {
     this.username = data.username;
@@ -12,8 +11,6 @@ function Player(data) {
     this.dexterity = data.dexterity;
     this.items = data.items;
     this.gear = data.gear;
-    this.rngUtils = new RNGUtils();
-    this.playerLevelUtils = new PlayerLevelUtils();
     if (typeof data.equipped == 'undefined') {
         this.equipped = {
             'HEAD': null,
@@ -25,6 +22,25 @@ function Player(data) {
         this.equipped = data.equipped;
     }
 }
+
+Player.prototype.getXpToLevel = function () {
+    // Move 10 to game settings as base_xp
+    var xp = 10;
+    var last_xp = xp;
+    var multipier = 1.6;
+    for (var x = 2; x <= this.level; x++) {
+        if (x % 3 == 0 && multipier >= 0.1) {
+            multipier -= 0.1;
+        }
+        xp += last_xp * multipier;
+        last_xp = xp;
+    }
+    return Math.floor(xp);
+};
+
+Player.prototype.getHPUpdateForLevel = function () {
+    return (this.getLevel() * 20);
+};
 
 Player.prototype.checkForCriticalHit = function () {
     var max = 300;
@@ -44,15 +60,14 @@ Player.prototype.checkForCriticalHit = function () {
     if (this.getDexterity() >= 300) {
         min = 295;
     }
-    return this.rngUtils.getRandom(min, max) == max;
+    return RNGUtils.getRandom(min, max) == max;
 };
 
-Player.prototype.addItem = function (redis, item) {
+Player.prototype.addItem = function (item) {
     if (typeof this.items === 'undefined') {
         this.items = [];
     }
     this.items.push(item);
-    redis.set(this.getUsername(), this.toString());
 };
 
 Player.prototype.getUsername = function () {
@@ -68,6 +83,9 @@ Player.prototype.setXP = function (xp) {
 };
 
 Player.prototype.getHP = function () {
+    if (this.hp < 0) {
+        this.hp = 0;
+    }
     return this.hp;
 };
 
@@ -91,7 +109,17 @@ Player.prototype.setLevel = function (level) {
 };
 
 Player.prototype.getDamage = function () {
-    return this.strength;
+    var did_crit = false;
+    var damage = this.getStrength();
+    if (this.checkForCriticalHit()) {
+        did_crit = true;
+        var bonus_multiplier = parseFloat(RNGUtils.getRandom(2, 4).toString() + '.' + RNGUtils.getRandom(0, 9).toString() + RNGUtils.getRandom(0, 9).toString());
+        damage *= bonus_multiplier;
+    }
+    return {
+        'damage': Math.floor(damage),
+        'crit': did_crit
+    };
 };
 
 Player.prototype.getGold = function () {
@@ -118,9 +146,9 @@ Player.prototype.setDexterity = function (dexterity) {
     this.dexterity = dexterity;
 };
 
-Player.prototype.printInfo = function (channel, client) {
-    var xpToNextLevel = this.playerLevelUtils.getXpToLevel(this.getLevel()) - this.getXP();
-    client.say(channel, '@' + this.getUsername() + ', LEVEL-' + this.getLevel() + ' ItsBoshyTime HP-' + this.getHP() + '/' + this.getMaxHP() + ' ItsBoshyTime STR-' + this.getStrength() + ' ItsBoshyTime DEX-' + this.getDexterity() + ' ItsBoshyTime XP-' + this.getXP() + ' ItsBoshyTime GOLD-' + this.getGold() + ' ItsBoshyTime NEXT LVL XP-' + xpToNextLevel + ' ItsBoshyTime To see your items use the \'showitems\' command ItsBoshyTime');
+Player.prototype.getInfoMessage = function () {
+    var xpToNextLevel = this.getXpToLevel(this.getLevel()) - this.getXP();
+    return '@' + this.getUsername() + ', LEVEL-' + this.getLevel() + ' ItsBoshyTime HP-' + this.getHP() + '/' + this.getMaxHP() + ' ItsBoshyTime STR-' + this.getStrength() + ' ItsBoshyTime DEX-' + this.getDexterity() + ' ItsBoshyTime XP-' + this.getXP() + ' ItsBoshyTime GOLD-' + this.getGold() + ' ItsBoshyTime NEXT LVL XP-' + xpToNextLevel + ' ItsBoshyTime To see your items use the \'showitems\' command ItsBoshyTime';
 };
 
 Player.prototype.getItemsMessage = function (itemUtils) {
@@ -169,7 +197,7 @@ Player.prototype.addGear = function (gear) {
     this.gear.push(gear);
 };
 
-Player.prototype.getEquippedGearMessage = function (client, channel) {
+Player.prototype.getEquippedGearMessage = function () {
     var message = 'ItsBoshyTime ';
     message += 'WEAPON: ';
     if (typeof this.equipped['WEAPON'] != 'undefined' && this.equipped['WEAPON'] != null) {
@@ -180,24 +208,23 @@ Player.prototype.getEquippedGearMessage = function (client, channel) {
     return message;
 };
 
-Player.prototype.equipGear = function (number, client, channel) {
+Player.prototype.equipGear = function (number) {
     var item = this.gear[number - 1];
     if (this.equipped[item.type] == null) {
-        client.say(channel, '@' + this.username + ', You have equipped ' + item.name);
+        this.equipped[item.type] = item;
         this.gear.splice(number - 1, 1);
-        return;
+        return '@' + this.username + ', You have equipped ' + item.name;
     }
     var oldItem = this.equipped[item.type];
     this.equipped[item.type] = item;
     this.gear[number - 1] = oldItem;
-    client.say(channel, '@' + this.username + ', You have replaced ' + oldItem.name + ' with ' + item.name);
+    return '@' + this.username + ', You have replaced ' + oldItem.name + ' with ' + item.name;
 };
 
-Player.prototype.dropGear = function (number, client, channel) {
+Player.prototype.dropGear = function (number) {
     var item = this.gear[number - 1];
-    client.say(channel, '@' + this.username + ', You have dropped ' + item.name);
     this.gear.splice(number - 1, 1);
-    return;
+    return '@' + this.username + ', You have dropped ' + item.name;
 };
 
 Player.prototype.toString = function () {
@@ -207,6 +234,5 @@ Player.prototype.toString = function () {
 Player.prototype.update = function (redis) {
     redis.set(this.getUsername(), this.toString());
 };
-
 
 module.exports = Player;
