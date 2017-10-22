@@ -96,3 +96,47 @@ test("Equip weapon with previous weapon in slot", () => {
     expect(player.gear[1]).toBe(axe2);
     expect(player.gear[2]).toBe(axe4);
 });
+
+test("Drop weapons", () => {
+    var player = PlayerUtils.getNewPlayerObject('tester');
+    var axe = new Axe();
+    var axe2 = new Axe();
+    var axe3 = new Axe();
+    var axe4 = new Axe();
+    player.gear = null;
+    player.addGear(axe);
+    player.addGear(axe2);
+    player.addGear(axe3);
+    player.addGear(axe4);
+    expect(player.gear.length).toBe(4);
+    player.dropGear(2);
+    expect(player.gear.length).toBe(3);
+    expect(player.gear[0]).toBe(axe);
+    expect(player.gear[1]).toBe(axe3);
+    expect(player.gear[2]).toBe(axe4);
+    player.dropGear(1);
+    expect(player.gear.length).toBe(2);
+    expect(player.gear[0]).toBe(axe3);
+    expect(player.gear[1]).toBe(axe4);
+    player.dropGear(2);
+    expect(player.gear.length).toBe(1);
+    expect(player.gear[0]).toBe(axe3);
+    player.dropGear(1);
+    expect(player.gear.length).toBe(0);
+});
+
+test("Gear equip HP change", () => {
+    var player = PlayerUtils.getNewPlayerObject('tester');
+    var axe = new Axe();
+    axe.hp_bonus = 10;
+    player.handleGearEquipHPChange(axe);
+    expect(player.hp).toBe(90);
+});
+
+test("Gear equip HP change", () => {
+    var player = PlayerUtils.getNewPlayerObject('tester');
+    var axe = new Axe();
+    axe.hp_bonus = 0;
+    player.handleGearEquipHPChange(axe);
+    expect(player.hp).toBe(100);
+});

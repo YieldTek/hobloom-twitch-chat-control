@@ -43,8 +43,12 @@ Player.prototype.getHPUpdateForLevel = function () {
 };
 
 Player.prototype.checkForCriticalHit = function () {
+    // TODO(Sean): Rebalance Dexterity
     var max = 300;
     var min = this.getDexterity();
+    if (min >= max) {
+        return true;
+    }
     if (this.getLevel() > 0 && this.getLevel() < 5) {
         max = 6;
     }
@@ -91,13 +95,15 @@ Player.prototype.getHP = function () {
 
 Player.prototype.setHP = function (hp) {
     this.hp = hp;
+    this.hp += this.getHPBoostFromGear();
 };
 Player.prototype.getMaxHP = function () {
-    return this.max_hp;
+    return this.max_hp + this.getHPBoostFromGear();
 };
 
 Player.prototype.setMaxHP = function (hp) {
     this.max_hp = hp;
+    this.max_hp += this.getHPBoostFromGear();
 };
 
 Player.prototype.getLevel = function () {
@@ -106,6 +112,30 @@ Player.prototype.getLevel = function () {
 
 Player.prototype.setLevel = function (level) {
     this.level = level;
+};
+
+Player.prototype.getBonusDamageFromGear = function () {
+    var bonus = 0;
+    if (this.equipped.WEAPON != null) {
+        bonus += this.equipped.WEAPON.str;
+    }
+    return bonus;
+};
+
+Player.prototype.getDexBoostFromGear = function () {
+    var bonus = 0;
+    if (this.equipped.WEAPON != null) {
+        bonus += this.equipped.WEAPON.dex;
+    }
+    return bonus;
+};
+
+Player.prototype.getHPBoostFromGear = function () {
+    var bonus = 0;
+    if (this.equipped.WEAPON != null) {
+        bonus += this.equipped.WEAPON.hp_bonus;
+    }
+    return bonus;
 };
 
 Player.prototype.getDamage = function () {
@@ -131,19 +161,19 @@ Player.prototype.setGold = function (gold) {
 };
 
 Player.prototype.getStrength = function () {
-    return this.strength;
+    return this.strength + this.getBonusDamageFromGear();
 };
 
 Player.prototype.setStrength = function (strength) {
-    this.strength = strength;
+    this.strength = strength + this.getDexBoostFromGear();
 };
 
 Player.prototype.getDexterity = function () {
-    return this.dexterity;
+    return this.dexterity + this.getDexBoostFromGear();
 };
 
 Player.prototype.setDexterity = function (dexterity) {
-    this.dexterity = dexterity;
+    this.dexterity = dexterity + this.getDexBoostFromGear();
 };
 
 Player.prototype.getInfoMessage = function () {
@@ -210,15 +240,26 @@ Player.prototype.getEquippedGearMessage = function () {
 
 Player.prototype.equipGear = function (number) {
     var item = this.gear[number - 1];
-    if (this.equipped[item.type] == null) {
-        this.equipped[item.type] = item;
+    var oldItem = this.equipped[item.type];
+    this.equipped[item.type] = item;
+    this.hp += item.hp_bonus;
+    if (oldItem == null) {
         this.gear.splice(number - 1, 1);
         return '@' + this.username + ', You have equipped ' + item.name;
     }
-    var oldItem = this.equipped[item.type];
-    this.equipped[item.type] = item;
     this.gear[number - 1] = oldItem;
+    this.handleGearEquipHPChange(oldItem);
     return '@' + this.username + ', You have replaced ' + oldItem.name + ' with ' + item.name;
+};
+
+Player.prototype.handleGearEquipHPChange = function (item) {
+    if (item.hp_bonus == null) {
+        return;
+    }
+    this.hp -= item.hp_bonus;
+    if (this.hp <= 0) {
+        this.hp = 1;
+    }
 };
 
 Player.prototype.dropGear = function (number) {
