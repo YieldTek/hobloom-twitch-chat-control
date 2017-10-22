@@ -40,6 +40,9 @@ lightInfoUtils.updateLightStatus(true);
 var num_voters_last_round = 1;
 var client = new tmi.client(settings.getTwitchChatClientConfig());
 
+// This is a hack but im overhauling the entire battle/command system next so I dont want to spend a ton of time on it - Sean
+var monsters_punish_with_lights = [ 'Dragon', 'Manticore'];
+
 client.on("chat", function (channel, userstate, message, self) {
     if (self) return;
 
@@ -60,7 +63,7 @@ client.on("chat", function (channel, userstate, message, self) {
                 if (world.getMonster().getHP() <= 0) {
                     ChatUtils.sayInChat(client, "The " + world.getMonster().getName() + " has been slain!");
 
-                    var rng = RNGUtils.getRandom(1, 3);
+                    var rng = RNGUtils.getRandom(1, 2);
                     if (rng == 2) {
                         var item = NormalGearFactory.getItemForPlayer(player.getLevel());
                         if (item != null) {
@@ -190,7 +193,7 @@ client.on("chat", function (channel, userstate, message, self) {
                 var hunted = false;
                 if (!CommandHelpUtils.isHuntCommand(command)) {
                     voteUtils.addUserVote(userstate.username, command);
-                    ChatUtils.sayInChat(client, '@' + userstate.username + ', I have received your vote of ' + message + ' and awarded you ' + gameSettings.getGoldForVote() + ' gold for it. Any other votes sent this round will be ignored!');
+                    ChatUtils.sayInChat(client, '@' + userstate.username + ', I have received your vote of ' + command + ' and awarded you ' + gameSettings.getGoldForVote() + ' gold for it. Any other votes sent this round will be ignored!');
                 } else {
                     hunted = true;
                     voteUtils.addUserWithoutVote(userstate.username);
@@ -238,7 +241,13 @@ function announcePoll() {
 function mainLoop() {
     if (stateUtils.isFightingMonsterState()) {
         var time_in_fight = new DateDiff(new Date(), world.getMonster().getFightStartTime());
+        // TODO(Sean): Move this to config
         if (time_in_fight.seconds() >= 15) {
+            if (monsters_punish_with_lights.indexOf(world.getMonster().getName()) > -1) {
+                if (lightInfoUtils.getLightsOn()) {
+                    lightInfoUtils.updateLightStatus(false);
+                }
+            }
             world.getMonster().punish();
             world.getMonster().finish(settings);
             stateUtils.setStateOpenVoting();
@@ -248,7 +257,6 @@ function mainLoop() {
     if (stateUtils.isVotingOpenState()) {
         var time_in_round = new DateDiff(new Date(), voteUtils.getRoundStartedTime());
         if (time_in_round.minutes() >= gameSettings.getRoundTimeInMinutes()) {
-        //if (time_in_round.seconds() >= 15) {
             stateUtils.setCountingVotes();
         }
         return;
