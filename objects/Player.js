@@ -94,8 +94,7 @@ Player.prototype.getHP = function () {
 };
 
 Player.prototype.setHP = function (hp) {
-    this.hp = hp;
-    this.hp += this.getHPBoostFromGear();
+    this.hp = hp + this.getHPBoostFromGear();
 };
 
 Player.prototype.getBaseMaxHP = function () {
@@ -107,8 +106,7 @@ Player.prototype.getMaxHP = function () {
 };
 
 Player.prototype.setMaxHP = function (hp) {
-    this.max_hp = hp;
-    this.max_hp += this.getHPBoostFromGear();
+    this.max_hp = hp + this.getHPBoostFromGear();
 };
 
 Player.prototype.getLevel = function () {
