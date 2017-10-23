@@ -90,6 +90,9 @@ Player.prototype.getHP = function () {
     if (this.hp < 0) {
         this.hp = 0;
     }
+    if (this.hp > this.max_hp) {
+        this.hp = this.max_hp;
+    }
     return this.hp;
 };
 
