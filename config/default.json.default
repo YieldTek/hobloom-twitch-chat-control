@@ -4,5 +4,9 @@
   "hobloom_ip": "XXX.XXX.XXX.XXX",
   "hobloom_port": "XXXXXX",
   "channel": "XXXXXX",
-  "dev_mode": true
+  "dev_mode": true,
+  "game_settings": {
+      "gold_for_vote": 5,
+      "round_time_in_minutes": 1
+  }
 }

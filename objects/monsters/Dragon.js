@@ -9,6 +9,8 @@ function Dragon(client, channel, locks, callback) {
     this.name = "Dragon";
     this.hp = 100;
     this.xp = 150;
+    this.min_damage = 30;
+    this.max_damage = 50;
     this.callbackFunction = callback;
 }
 
@@ -23,8 +25,8 @@ Dragon.prototype.punish = function () {
     return this.locks;
 };
 
-Dragon.prototype.finish = function () {
-    this.callbackFunction('light', false);
+Dragon.prototype.finish = function (settings) {
+    this.callbackFunction(settings, 'light', false);
 };
 
 util.inherits(Dragon, Monster);

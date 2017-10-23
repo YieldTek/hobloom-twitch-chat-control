@@ -2,6 +2,8 @@ function Monster() {
     this.name = '';
     this.hp = 1;
     this.xp = 0;
+    this.min_damage = 1;
+    this.max_damage = 2;
     this.fight_start_time = new Date();
 }
 
@@ -26,6 +28,14 @@ Monster.prototype.getXP = function () {
 
 Monster.prototype.getFightStartTime = function () {
     return this.fight_start_time;
-}
+};
+
+Monster.prototype.getMinDamage = function () {
+    return this.min_damage;
+};
+
+Monster.prototype.getMaxDamage = function () {
+    return this.max_damage;
+};
 
 module.exports = Monster;

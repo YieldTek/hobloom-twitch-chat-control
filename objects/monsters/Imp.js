@@ -9,6 +9,8 @@ function Imp(client, channel, locks, callback) {
     this.name = "Imp";
     this.hp = 25;
     this.xp = 50;
+    this.min_damage = 10;
+    this.max_damage = 20;
     this.callbackFunction = callback;
 }
 
@@ -23,8 +25,8 @@ Imp.prototype.punish = function () {
     return this.locks;
 };
 
-Imp.prototype.finish = function () {
-    this.callbackFunction('exhaust', false);
+Imp.prototype.finish = function (settings) {
+    this.callbackFunction(settings, 'exhaust', false);
 };
 
 util.inherits(Imp, Monster);

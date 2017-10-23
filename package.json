@@ -1,0 +1,41 @@
+{
+  "name": "hobloom-twitch-chat-control",
+  "version": "2.1.2",
+  "description": "Twitch chat bot for allowing users to control your HOBloom growroom automatin",
+  "main": "tent-control-bot.js",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HighTekGrow/hobloom-twitch-chat-control.git"
+  },
+  "keywords": [
+    "HOBloom",
+    "growroom",
+    "Twitch",
+    "chat",
+    "chat",
+    "bot"
+  ],
+  "author": "atarimaster001",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/HighTekGrow/hobloom-twitch-chat-control/issues"
+  },
+  "homepage": "https://github.com/HighTekGrow/hobloom-twitch-chat-control#readme",
+  "devDependencies": {
+    "jest": "^21.2.1"
+  },
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "config": "^1.26.2",
+    "date-diff": "^0.1.3",
+    "request": "^2.83.0",
+    "tmi.js": "^1.2.1"
+  }
+}

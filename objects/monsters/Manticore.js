@@ -7,6 +7,8 @@ function Manitcore(client, channel, locks, callback) {
     this.client = client;
     this.channel = channel;
     this.name = "Manticore";
+    this.min_damage = 2;
+    this.max_damage = 5;
     this.hp = 15;
     this.xp = 25;
     this.callbackFunction = callback;
@@ -23,8 +25,8 @@ Manitcore.prototype.punish = function () {
     return this.locks;
 };
 
-Manitcore.prototype.finish = function () {
-    this.callbackFunction('light', false);
+Manitcore.prototype.finish = function (settings) {
+    this.callbackFunction(settings, 'light', false);
 }
 
 util.inherits(Manitcore, Monster);

@@ -9,6 +9,8 @@ function SnowYeti(client, channel, locks, callback) {
     this.name = "Snow Yeti";
     this.hp = 60;
     this.xp = 80;
+    this.min_damage = 15;
+    this.max_damage = 30;
     this.callbackFunction = callback;
 }
 
@@ -23,8 +25,8 @@ SnowYeti.prototype.punish = function () {
     return this.locks;
 };
 
-SnowYeti.prototype.finish = function () {
-    this.callbackFunction('exhaust', false);
+SnowYeti.prototype.finish = function (settings) {
+    this.callbackFunction(settings, 'exhaust', false);
 };
 
 util.inherits(SnowYeti, Monster);
