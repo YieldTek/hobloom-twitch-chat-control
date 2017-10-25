@@ -235,7 +235,7 @@ settings.getSettings()
 });
 
 function announcePoll() {
-    var rng = RNGUtils.getRandom(1, 4);
+    var rng = RNGUtils.getRandom(1, 5);
     switch (rng) {
         case 1:
             ChatUtils.sayInChat(client, 'Kappa Kappa CHECK US OUT ON PATREON TO SUPPORT MORE OPEN SOURCE AUTOMATION SOFTWARE! http://patreon.com/hightek Kappa Kappa');
@@ -248,6 +248,9 @@ function announcePoll() {
             return;
         case 4:
             ChatUtils.sayInChat(client, 'Kappa Kappa CHECK OUT OUR BLOG AT http://ttcubicle.blogspot.com/ Kappa Kappa');
+            return;
+        case 5:
+            ChatUtils.sayInChat(client, 'Kappa Kappa TIP: To get around twitches 30 second timeout while attacking you can add a space after the ".." and then any random string.  Examples(".. a" ".. 2d" ".. aq2" ".. z") Kappa Kappa');
             return;
     }
 
