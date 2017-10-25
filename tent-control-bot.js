@@ -235,7 +235,22 @@ settings.getSettings()
 });
 
 function announcePoll() {
-    ChatUtils.sayInChat(client, 'Kappa Kappa CHECK US OUT ON PATREON TO SUPPORT MORE OPEN SOURCE AUTOMATION SOFTWARE! http://patreon.com/hightek Kappa Kappa');
+    var rng = RNGUtils.getRandom(1, 4);
+    switch (rng) {
+        case 1:
+            ChatUtils.sayInChat(client, 'Kappa Kappa CHECK US OUT ON PATREON TO SUPPORT MORE OPEN SOURCE AUTOMATION SOFTWARE! http://patreon.com/hightek Kappa Kappa');
+            return;
+        case 2:
+            ChatUtils.sayInChat(client, 'Kappa Kappa JOIN THE DANK GROW MOB DISCORD! https://discord.gg/xgmGyE6 Kappa Kappa');
+            return;
+        case 3:
+            ChatUtils.sayInChat(client, 'Kappa Kappa CHECK US OUR UPDATED SITE AT http://hightekco.com Kappa Kappa');
+            return;
+        case 4:
+            ChatUtils.sayInChat(client, 'Kappa Kappa CHECK OUT OUR BLOG AT http://ttcubicle.blogspot.com/ Kappa Kappa');
+            return;
+    }
+
 }
 
 function mainLoop() {
