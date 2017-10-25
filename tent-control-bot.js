@@ -244,7 +244,7 @@ function announcePoll() {
             ChatUtils.sayInChat(client, 'Kappa Kappa JOIN THE DANK GROW MOB DISCORD! https://discord.gg/xgmGyE6 Kappa Kappa');
             return;
         case 3:
-            ChatUtils.sayInChat(client, 'Kappa Kappa CHECK US OUR UPDATED SITE AT http://hightekco.com Kappa Kappa');
+            ChatUtils.sayInChat(client, 'Kappa Kappa CHECK OUT OUR UPDATED SITE AT http://hightekco.com Kappa Kappa');
             return;
         case 4:
             ChatUtils.sayInChat(client, 'Kappa Kappa CHECK OUT OUR BLOG AT http://ttcubicle.blogspot.com/ Kappa Kappa');
