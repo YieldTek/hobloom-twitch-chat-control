@@ -235,7 +235,25 @@ settings.getSettings()
 });
 
 function announcePoll() {
-    ChatUtils.sayInChat(client, 'Kappa Kappa CHECK US OUT ON PATREON TO SUPPORT MORE OPEN SOURCE AUTOMATION SOFTWARE! http://patreon.com/hightek Kappa Kappa');
+    var rng = RNGUtils.getRandom(1, 5);
+    switch (rng) {
+        case 1:
+            ChatUtils.sayInChat(client, 'Kappa Kappa CHECK US OUT ON PATREON TO SUPPORT MORE OPEN SOURCE AUTOMATION SOFTWARE! http://patreon.com/hightek Kappa Kappa');
+            return;
+        case 2:
+            ChatUtils.sayInChat(client, 'Kappa Kappa JOIN THE DANK GROW MOB DISCORD! https://discord.gg/xgmGyE6 Kappa Kappa');
+            return;
+        case 3:
+            ChatUtils.sayInChat(client, 'Kappa Kappa CHECK OUT OUR UPDATED SITE AT http://hightekco.com Kappa Kappa');
+            return;
+        case 4:
+            ChatUtils.sayInChat(client, 'Kappa Kappa CHECK OUT OUR BLOG AT http://ttcubicle.blogspot.com/ Kappa Kappa');
+            return;
+        case 5:
+            ChatUtils.sayInChat(client, 'Kappa Kappa TIP: To get around twitches 30 second timeout while attacking you can add a space after the ".." and then any random string.  Examples(".. a" ".. 2d" ".. aq2" ".. z") Kappa Kappa');
+            return;
+    }
+
 }
 
 function mainLoop() {

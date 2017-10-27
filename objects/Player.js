@@ -90,20 +90,26 @@ Player.prototype.getHP = function () {
     if (this.hp < 0) {
         this.hp = 0;
     }
+    if (this.hp > this.max_hp) {
+        this.hp = this.max_hp;
+    }
     return this.hp;
 };
 
 Player.prototype.setHP = function (hp) {
-    this.hp = hp;
-    this.hp += this.getHPBoostFromGear();
+    this.hp = hp + this.getHPBoostFromGear();
 };
+
+Player.prototype.getBaseMaxHP = function () {
+    return this.max_hp;
+};
+
 Player.prototype.getMaxHP = function () {
     return this.max_hp + this.getHPBoostFromGear();
 };
 
 Player.prototype.setMaxHP = function (hp) {
-    this.max_hp = hp;
-    this.max_hp += this.getHPBoostFromGear();
+    this.max_hp = hp + this.getHPBoostFromGear();
 };
 
 Player.prototype.getLevel = function () {
@@ -164,12 +170,20 @@ Player.prototype.getStrength = function () {
     return this.strength + this.getBonusDamageFromGear();
 };
 
+Player.prototype.getBaseStrength = function () {
+    return this.strength;
+};
+
 Player.prototype.setStrength = function (strength) {
     this.strength = strength + this.getDexBoostFromGear();
 };
 
 Player.prototype.getDexterity = function () {
     return this.dexterity + this.getDexBoostFromGear();
+};
+
+Player.prototype.getBaseDexterity = function () {
+    return this.dexterity;
 };
 
 Player.prototype.setDexterity = function (dexterity) {
