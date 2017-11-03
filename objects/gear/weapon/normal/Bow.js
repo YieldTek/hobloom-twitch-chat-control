@@ -8,9 +8,9 @@ function Bow() {
     this.min_str = 0;
     this.max_str = 3;
     this.min_dex = 3;
-    this.max_dex = 9;
+    this.max_dex = 5;
     this.min_bonus_hp = 20;
-    this.max_bonus_hp = 70;
+    this.max_bonus_hp = 50;
     this.min_level = 1;
     this.rarity = 'NORMAL';
     this.type = 'WEAPON';
