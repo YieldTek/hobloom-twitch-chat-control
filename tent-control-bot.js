@@ -67,11 +67,6 @@ var winners_loot = {
 client.on("chat", function (channel, userstate, message, self) {
     if (self) return;
 
-    PlayerUtils.getPlayer(redis_client, userstate.username, function (player) {
-        player.setGold(9999);
-        return player.update(redis_client);
-    });
-
     if (stateUtils.isBattleState() && winners.indexOf(userstate.username) > -1) {
         if (message == current_round_sentance) {
             return PlayerUtils.getPlayer(redis_client, userstate.username, function (player) {
