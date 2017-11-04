@@ -6,11 +6,13 @@ function Player(data) {
     this.max_hp = data.max_hp;
     this.xp = data.xp;
     this.level = data.level;
+    this.max_level = 10;
     this.gold = data.gold;
     this.strength = data.strength;
     this.dexterity = data.dexterity;
     this.items = data.items;
     this.gear = data.gear;
+    this.max_gear = 15;
     if (typeof data.equipped == 'undefined') {
         this.equipped = {
             'HEAD': null,
@@ -24,8 +26,20 @@ function Player(data) {
 }
 
 Player.prototype.getXpToLevel = function () {
+    var old_xp = 100;
+    for (var i = 1; i <= 50; i++) {
+        if (i != 1) {
+            old_xp += Math.floor(old_xp * 0.5);
+        }
+        if (i == this.level) {
+            return old_xp;
+        }
+    }
+
+
+
     // Move 10 to game settings as base_xp
-    var xp = 10;
+    /*var xp = 10;
     var last_xp = xp;
     var multipier = 1.6;
     for (var x = 2; x <= this.level; x++) {
@@ -35,11 +49,11 @@ Player.prototype.getXpToLevel = function () {
         xp += last_xp * multipier;
         last_xp = xp;
     }
-    return Math.floor(xp);
+    return Math.floor(xp);*/
 };
 
 Player.prototype.getHPUpdateForLevel = function () {
-    return (this.getLevel() * 20);
+    return (this.getLevel() * 100);
 };
 
 Player.prototype.checkForCriticalHit = function () {
@@ -90,14 +104,22 @@ Player.prototype.getHP = function () {
     if (this.hp < 0) {
         this.hp = 0;
     }
-    if (this.hp > this.max_hp) {
-        this.hp = this.max_hp;
+    if (this.hp > this.getMaxHP()) {
+        this.hp = this.getMaxHP();
     }
     return this.hp;
 };
 
 Player.prototype.setHP = function (hp) {
     this.hp = hp + this.getHPBoostFromGear();
+};
+
+Player.prototype.heal = function (hp) {
+    this.hp += hp;
+};
+
+Player.prototype.takeDamage = function (damage) {
+    this.hp -= damage;
 };
 
 Player.prototype.getBaseMaxHP = function () {
@@ -109,7 +131,7 @@ Player.prototype.getMaxHP = function () {
 };
 
 Player.prototype.setMaxHP = function (hp) {
-    this.max_hp = hp + this.getHPBoostFromGear();
+    this.max_hp = hp;
 };
 
 Player.prototype.getLevel = function () {
@@ -175,7 +197,7 @@ Player.prototype.getBaseStrength = function () {
 };
 
 Player.prototype.setStrength = function (strength) {
-    this.strength = strength + this.getDexBoostFromGear();
+    this.strength = strength;
 };
 
 Player.prototype.getDexterity = function () {
@@ -187,7 +209,7 @@ Player.prototype.getBaseDexterity = function () {
 };
 
 Player.prototype.setDexterity = function (dexterity) {
-    this.dexterity = dexterity + this.getDexBoostFromGear();
+    this.dexterity = dexterity;
 };
 
 Player.prototype.getInfoMessage = function () {
@@ -211,6 +233,10 @@ Player.prototype.getItemsMessage = function (itemUtils) {
     }
     return message;
 };
+
+Player.prototype.getGear = function () {
+    return this.gear;
+}
 
 Player.prototype.getGearMessage = function () {
     var message = 'ItsBoshyTime ';
@@ -238,7 +264,14 @@ Player.prototype.addGear = function (gear) {
     if (typeof this.gear == 'undefined' || this.gear == null) {
         this.gear = [];
     }
+    if (this.gear.length === this.max_gear) {
+        return;
+    }
     this.gear.push(gear);
+};
+
+Player.prototype.dropAllGear = function () {
+    this.gear = [];
 };
 
 Player.prototype.getEquippedGearMessage = function () {
@@ -261,8 +294,8 @@ Player.prototype.equipGear = function (number) {
         this.gear.splice(number - 1, 1);
         return '@' + this.username + ', You have equipped ' + item.name;
     }
-    this.gear[number - 1] = oldItem;
     this.handleGearEquipHPChange(oldItem);
+    this.gear[number - 1] = oldItem;
     return '@' + this.username + ', You have replaced ' + oldItem.name + ' with ' + item.name;
 };
 
@@ -280,6 +313,29 @@ Player.prototype.dropGear = function (number) {
     var item = this.gear[number - 1];
     this.gear.splice(number - 1, 1);
     return '@' + this.username + ', You have dropped ' + item.name;
+};
+
+Player.prototype.die = function () {
+    this.hp = this.getMaxHP();
+    // TODO: Gold penalty on death
+};
+
+Player.prototype.updatePlayerXP = function (xp) {
+    this.setXP(this.getXP() + xp);
+    var xpToLevel = this.getXpToLevel() - this.getXP();
+    while (xpToLevel <= 0) {
+        this.setLevel(this.getLevel() + 1);
+        this.setXP(xpToLevel * -1);
+        this.setMaxHP(this.getHPUpdateForLevel());
+        this.setHP(this.getMaxHP());
+
+        this.setStrength(this.getBaseStrength() + 1);
+        if (this.getLevel() % 2 == 0) {
+            this.setDexterity(this.getBaseDexterity() + 1);
+        }
+
+        xpToLevel = this.getXpToLevel(this.getLevel()) - this.getXP();
+    }
 };
 
 Player.prototype.toString = function () {
