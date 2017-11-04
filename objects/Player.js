@@ -114,6 +114,10 @@ Player.prototype.setHP = function (hp) {
     this.hp = hp + this.getHPBoostFromGear();
 };
 
+Player.prototype.heal = function (hp) {
+    this.hp += hp;
+};
+
 Player.prototype.takeDamage = function (damage) {
     this.hp -= damage;
 };

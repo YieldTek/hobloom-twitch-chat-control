@@ -11,6 +11,7 @@ var ItemUtils = require('./lib/ItemUtils');
 var StateUtils = require('./lib/StateUtils');
 var PlayerUtils = require('./lib/PlayerUtils');
 var Potion = require('./objects/items/Potion');
+var MegaPotion = require('./objects/items/MegaPotion');
 var ChestFactory = require('./lib/ChestFactory');
 var MonsterFactory = require('./lib/MonsterFactory');
 var LightInfoUtils = require('./lib/LightInfoUtils');
@@ -65,6 +66,11 @@ var winners_loot = {
 
 client.on("chat", function (channel, userstate, message, self) {
     if (self) return;
+
+    PlayerUtils.getPlayer(redis_client, userstate.username, function (player) {
+        player.setGold(9999);
+        return player.update(redis_client);
+    });
 
     if (stateUtils.isBattleState() && winners.indexOf(userstate.username) > -1) {
         if (message == current_round_sentance) {
@@ -149,6 +155,9 @@ client.on("chat", function (channel, userstate, message, self) {
         if (CommandHelpUtils.isVoteHelpSubCommand(subCommand)) {
             return ChatUtils.sayInChat(client, getVoteHelpMessage());
         }
+        if (CommandHelpUtils.isShopHelpSubCommand(subCommand)) {
+            return ChatUtils.sayInChat(client, ShopUtils.getHelpMessage());
+        }
     }
     if (CommandHelpUtils.isShowGearCommand(command)) {
         return PlayerUtils.getPlayer(redis_client, userstate.username, function (player) {
@@ -191,6 +200,65 @@ client.on("chat", function (channel, userstate, message, self) {
             }
             ChatUtils.sayInChat(client, player.equipGear(itemNumber));
             return player.update(redis_client);
+        });
+    }
+    if (CommandHelpUtils.isShopItemListCommand(message)) {
+        return ChatUtils.sayInChat(client, ShopUtils.getItemListMessage());
+    }
+    if (CommandHelpUtils.isShopBuyItemCommand(message)) {
+        return PlayerUtils.getPlayer(redis_client, userstate.username, function (player) {
+            var gold = player.getGold();
+            var item = null;
+            var say_message = '@' + userstate.username + ', you have entered an invalid item name';
+            var itemType = message.split(' ')[2];
+            if (message.split(' ').length > 3) {
+                itemType += message.split(' ')[3];
+            }
+            switch (itemType.toLowerCase()) {
+                case ('potion'):
+                    item = new Potion();
+                    break;
+                case ('megapotion'):
+                    item = new MegaPotion();
+                    break;
+            }
+            if (item == null) {
+                return ChatUtils.sayInChat(client, say_message);
+            }
+            if (gold < item.getCost()) {
+                return ChatUtils.sayInChat(client, '@' + userstate.username + ', you can\'t afford this item.  Try again when you earn ' + (item.getCost() - gold) + ' more gold.');
+            }
+            var num_items = itemUtils.getItemCounts(player.getItems())[item.getName()];
+            var max_items = item.getMaxInInventor();
+            if (num_items >= max_items) {
+                return ChatUtils.sayInChat(client, '@' + userstate.username + ', you already have the max ' + item.getName() + ' in your inventory!');
+            }
+            player.addItem(item);
+            player.setGold(gold - item.getCost());
+            player.update(redis_client);
+            return ChatUtils.sayInChat(client, '@' + userstate.username + ', you have purchased a ' + item.getName());
+        });
+    }
+    if (CommandHelpUtils.isShowItemsCommand(command)) {
+        return PlayerUtils.getPlayer(redis_client, userstate.username, function (player) {
+            var message = player.getItemsMessage(itemUtils);
+            if (!message) {
+                return ChatUtils.sayInChat(client, '@' + userstate.username + ", your don't have any items!");
+            }
+            return ChatUtils.sayInChat(client, '@' + userstate.username + ", your current items are as follows " + message);
+        });
+    }
+    if (CommandHelpUtils.isUseItemCommand(command)) {
+        return PlayerUtils.getPlayer(redis_client, userstate.username, function (player) {
+            var itemNameArray = message.split(' ');
+            var itemName = itemNameArray[1];
+            if (itemNameArray.length > 2) {
+                itemName += ' ' + itemNameArray[2];
+            }
+            if (itemUtils.usePlayerItemByType(redis_client, player, itemName)) {
+                return ChatUtils.sayInChat(client, '@' + userstate.username + " used a " + message.split(' ')[1]);
+            }
+            return ChatUtils.sayInChat(client, '@' + userstate.username + ", you entered an invalid item.  It is either spelled wrong or you don't have that item in your inventory.");
         });
     }
 });
