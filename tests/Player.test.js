@@ -4,16 +4,16 @@ const Axe = require('../objects/gear/weapon/normal/Axe');
 
 test("Get XP to player level up", () => {
     var player = PlayerUtils.getNewPlayerObject('tester');
-    expect(player.getXpToLevel()).toBe(10);
+    expect(player.getXpToLevel()).toBe(100);
 
     player.level = 2;
-    expect(player.getXpToLevel()).toBe(26);
+    expect(player.getXpToLevel()).toBe(150);
 
     player.level = 5;
-    expect(player.getXpToLevel()).toBe(406);
+    expect(player.getXpToLevel()).toBe(505);
 
     player.level = 20;
-    expect(player.getXpToLevel()).toBe(53904686);
+    expect(player.getXpToLevel()).toBe(220753);
 });
 
 test("Get HP with HP below 0", () => {
@@ -25,19 +25,19 @@ test("Get HP with HP below 0", () => {
 
 test("Get HP for level", () => {
     var player = PlayerUtils.getNewPlayerObject('tester');
-    expect(player.getHPUpdateForLevel()).toBe(20);
-
-    player.level = 2;
-    expect(player.getHPUpdateForLevel()).toBe(40);
-
-    player.level = 5;
     expect(player.getHPUpdateForLevel()).toBe(100);
 
+    player.level = 2;
+    expect(player.getHPUpdateForLevel()).toBe(200);
+
+    player.level = 5;
+    expect(player.getHPUpdateForLevel()).toBe(500);
+
     player.level = 20;
-    expect(player.getHPUpdateForLevel()).toBe(400);
+    expect(player.getHPUpdateForLevel()).toBe(2000);
 
     player.level = 50;
-    expect(player.getHPUpdateForLevel()).toBe(1000);
+    expect(player.getHPUpdateForLevel()).toBe(5000);
 });
 
 test("Equip weapon without previous weapon in slot", () => {

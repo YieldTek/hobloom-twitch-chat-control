@@ -9,6 +9,7 @@ function ArcherGoblin(multiplier) {
     this.xp = 150;
     this.min_damage = 90;
     this.max_damage = 160;
+    this.battle_begin_message = 'A Goblin Archer runs into your village from the goblin infested caves north of your village!';
 }
 
 util.inherits(ArcherGoblin, Monster);

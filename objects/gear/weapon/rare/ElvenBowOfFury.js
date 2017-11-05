@@ -6,11 +6,11 @@ function ElvenBowOfFury() {
     Gear.apply(this, arguments);
     this.value = 20;
     this.min_str = 7;
-    this.max_str = 15;
-    this.min_dex = 6;
-    this.max_dex = 18;
+    this.max_str = 8;
+    this.min_dex = 5;
+    this.max_dex = 7;
     this.min_bonus_hp = 100;
-    this.max_bonus_hp = 400;
+    this.max_bonus_hp = 200;
     this.min_level = 9;
     this.rarity = 'RARE';
     this.type = 'WEAPON';

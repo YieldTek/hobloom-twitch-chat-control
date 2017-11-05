@@ -6,9 +6,9 @@ function Greatsword() {
     Gear.apply(this, arguments);
     this.value = 20;
     this.min_str = 5;
-    this.max_str = 16;
+    this.max_str = 8;
     this.min_dex = 4;
-    this.max_dex = 12;
+    this.max_dex = 6;
     this.min_bonus_hp = 10;
     this.max_bonus_hp = 80;
     this.min_level = 7;

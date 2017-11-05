@@ -35,21 +35,6 @@ Player.prototype.getXpToLevel = function () {
             return old_xp;
         }
     }
-
-
-
-    // Move 10 to game settings as base_xp
-    /*var xp = 10;
-    var last_xp = xp;
-    var multipier = 1.6;
-    for (var x = 2; x <= this.level; x++) {
-        if (x % 3 == 0 && multipier >= 0.1) {
-            multipier -= 0.1;
-        }
-        xp += last_xp * multipier;
-        last_xp = xp;
-    }
-    return Math.floor(xp);*/
 };
 
 Player.prototype.getHPUpdateForLevel = function () {
@@ -236,7 +221,7 @@ Player.prototype.getItemsMessage = function (itemUtils) {
 
 Player.prototype.getGear = function () {
     return this.gear;
-}
+};
 
 Player.prototype.getGearMessage = function () {
     var message = 'ItsBoshyTime ';
@@ -317,7 +302,6 @@ Player.prototype.dropGear = function (number) {
 
 Player.prototype.die = function () {
     this.hp = this.getMaxHP();
-    // TODO: Gold penalty on death
 };
 
 Player.prototype.updatePlayerXP = function (xp) {

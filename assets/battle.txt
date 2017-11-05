@@ -35,7 +35,6 @@ Pole Position
 Q*bert
 Pong
 Galaxian
-Donkey Kong Jr.
 Mortal Kombat
 Missile Command
 Punch-Out
@@ -55,12 +54,10 @@ Spy Hunter
 Star Wars
 Breakout
 Moon Patrol
-Track and Field
 1943
 Commando
 Battlezone
 Elevator Action
-Super Pac-Man
 Millipede
 Popeye
 Arkanoid
@@ -83,15 +80,12 @@ Knight Rider
 Kung-Fu
 Kung-Fu Heroes
 Laser Invasion
-Last Action Hero
-The Last Ninja
 Legendary Wings
 Lemmings
 Lethal Weapon
 Life Force
 Little Samson
 Lode Runner
-The Lone Ranger
 Loopz
 Low G Man
 Lunar Pool
@@ -106,8 +100,6 @@ MagMax
 Maniac Mansion
 Mappy-Land
 Marble Madness
-Mario Is Missing!
-Mario's Time Machine
 Mechanized Attack
 Mega Man
 Mendel Palace
@@ -116,29 +108,17 @@ Metal Mech
 Metal Storm
 Metroid
 Millipede
-Milon's Secret Castle
-Mission: Impossible
 Monopoly
-Monster in My Pocket
 Monster Party
-Monster Truck Rally
-Motor City Patrol
-Muppet Adventure
-The Mutant Virus
 Mystery Quest
 NARC
 Kiwi Kraze
-The NewZealand Story
 NFL Football
 Nightshade
 Ninja Crusaders
 Ninja Gaiden
 Shadow Warriors
 Ninja Kid
-Nintendo Campus Challenge
-Nintendo World Cup
-Noah's Ark	Unreleased
-Nobunaga's Ambition
 North & South
 Infogrames
 Operation Wolf
@@ -152,7 +132,6 @@ Panic Restaurant
 Paperboy
 Parasol Stars
 Parodius
-Phantom Fighter
 Pictionary
 Pinball
 Pinball Quest
@@ -164,18 +143,12 @@ Popeye
 Power Blade
 Power Punch
 Predator
-Prince of Persia
-Pro Sport Hockey
-Pro Wrestling
-The Punisher
 Puzznic
 Q*bert
 Qix
 Race America
 Racket Attack
-Rackets & Rivals
 Rad Racer
-Rainbow Islands
 Bubble Bobble
 Rally Bike
 Rambo
@@ -185,35 +158,25 @@ Remote Control
 Renegade
 Rescue
 Ring King
-River City Ransom
 Street Gangs
 Road Fighter
 RoadBlasters
 Robin Hood
 RoboCop
 Robowarrior
-Rocket Ranger
-The Rocketeer
 Rod Land=
 Rollerball
-Rollerblade Racer
 RollerGames
 Rygar
-Action In New York
 Section Z
 Seicross
-Shadow of the Ninja
 Blue Shadow
 Shadowgate
 Shatterhand
-Shingen the Ruler
 Shooting Range
 Short Order
 Side Pocket
-Silent Service
 Silkworm
 Silver Surfer
 Zanac
 Zen
-Zoda's Revenge
-Zombie Nation

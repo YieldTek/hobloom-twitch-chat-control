@@ -6,7 +6,15 @@
   "channel": "XXXXXX",
   "dev_mode": true,
   "game_settings": {
-      "gold_for_vote": 5,
-      "round_time_in_minutes": 1
-  }
+      "rounds_repeat_sentance": 10,
+      "max_length_seconds_main_round": 20,
+      "loot_announce_delay_seconds": 5,
+      "new_round_announce_delay_seconds": 5,
+      "announce_battle_delay_seconds": 3,
+      "time_between_monster_attacks_seconds": 5,
+      "announce_battle_loot_delay_seconds": 5,
+      "post_vote_delay_seconds": 10,
+      "time_between_vote_counts_minutes": 1,
+      "vote_cost": 400
+}
 }

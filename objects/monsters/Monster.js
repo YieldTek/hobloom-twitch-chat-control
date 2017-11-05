@@ -7,6 +7,7 @@ function Monster(multiplier) {
     this.xp = null;
     this.min_damage = null;
     this.max_damage = null;
+    this.battle_begin_message = '';
 }
 
 Monster.prototype.getName = function () {
@@ -43,5 +44,9 @@ Monster.prototype.getMaxDamage = function () {
 Monster.prototype.getDamage = function () {
     return RNGUtils.getRandom(this.min_damage, this.max_damage);
 };
+
+Monster.prototype.getAttackStartMessage = function () {
+    return this.battle_begin_message;
+}
 
 module.exports = Monster;

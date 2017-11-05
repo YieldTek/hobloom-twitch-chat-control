@@ -9,6 +9,7 @@ function ShockGoblin(multiplier) {
     this.xp = 175;
     this.min_damage = 70;
     this.max_damage = 120;
+    this.battle_begin_message = 'A Goblin Thunder Mage runs into your village from the goblin infested caves north of your village!';
 }
 
 util.inherits(ShockGoblin, Monster);
