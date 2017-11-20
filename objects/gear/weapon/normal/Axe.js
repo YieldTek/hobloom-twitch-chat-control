@@ -6,7 +6,7 @@ function Axe() {
     Gear.apply(this, arguments);
     this.value = 20;
     this.min_str = 3;
-    this.max_str = 8;
+    this.max_str = 6;
     this.min_dex = 0;
     this.max_dex = 3;
     this.min_bonus_hp = 20;
